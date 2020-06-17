@@ -118,4 +118,4 @@ if __name__ == "__main__":
             os.path.dirname(__file__), "logo.png")
 
     watermark_image(
-        watermark_path, args["input"], args["scale"], args["transparency"], args["postion"])
+        watermark_path, os.path.realpath(args["input"]), args["scale"], args["transparency"], args["postion"])
