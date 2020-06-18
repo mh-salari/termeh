@@ -1,0 +1,3 @@
+new_logo - انتخاب لوگو جدید
+update_default_settings - به روز رسانی تنظیمات پیشفرض
+help - راهنما
