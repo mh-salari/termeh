@@ -87,11 +87,8 @@ def watermark_image(watermark_path, input_image_path, scale_ratio, transparency,
 
     else:
         sys.exit(f"Invalid watermark position: {position}")
-    temp_image.show()
 
-    output_image_path = os.path.join(os.path.dirname(
-        input_image_path), f"{os.path.splitext(input_image_path)[0]}_{position}.png")
-    temp_image.save(output_image_path, quality=100)
+    return temp_image
 
 
 if __name__ == "__main__":
@@ -107,9 +104,21 @@ if __name__ == "__main__":
     ap.add_argument("-t", "--transparency", type=float, default=0.50,
                     help="transparency percent of the watermark  from 0 to 1 (smaller is more transparent)")
 
-    ap.add_argument("-p", "--postion", type=str, default="br",
+    ap.add_argument("-p", "--position", type=str, default="br",
                     help="watermark position: top bottom center| left right center (tl== top left)")
     args = vars(ap.parse_args())
 
-    watermark_image(
-        os.path.realpath(args["watermark"]), os.path.realpath(args["input"]), args["scale"], args["transparency"], args["postion"])
+    watermark_path = os.path.realpath(args["watermark"])
+    input_path = os.path.realpath(args["input"])
+    scale_ratio = args["scale"]
+    transparency = args["transparency"]
+    position = args["position"]
+
+    output_image = watermark_image(
+        watermark_path, input_path, scale_ratio, transparency, position)
+
+    output_image.show()
+
+    output_image_path = os.path.join(os.path.dirname(os.path.realpath(input_path)),
+                                     f'{os.path.splitext(input_path)[0]}_{position}.png')
+    output_image.save(output_image_path, quality=100)
