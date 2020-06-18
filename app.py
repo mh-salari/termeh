@@ -10,10 +10,8 @@ import time
 import sys
 import os
 import re
-from pathlib import Path
-from os.path import dirname
-from os.path import realpath
-
+import os.path
+from watermark.watermark import watermark_image
 
 import logging
 
@@ -23,7 +21,16 @@ logger = telebot.logger
 log.basicConfig(
     level=log.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-# calcifer_path = dirname(dirname(dirname(realpath(__file__))))
+users_dict = {}
+
+
+class UserSettings:
+    def __init__(self, chat_id):
+        self.chat_id = chat_id
+        self.watermark_path = None
+        self.scale = 0.25
+        self.transparency = 0.5
+        self.position = "bottom_left"
 
 
 TOKEN = "1244219534:AAEAuWL-hm8mBcNV6Ocr6IfzaDODeHQm4Uc"
@@ -36,18 +43,18 @@ user_step = {}  # so they won't reset every time the bot restarts
 
 def log_command(message):
     log.info(
-        "Command {} has been received. Chat data: {}".format(
-            message.text, str(message.chat)
-        )
+        f"Command {message.text} has been received." +
+        f"Chat data: '{message.chat.first_name} {message.chat.last_name}' @{message.chat.username}, id:{message.chat.id}"
+
     )
 
 
-def get_user_step(uid):
-    if uid in user_step:
-        return user_step[uid]
+def get_user_step(chat_id):
+    if chat_id in user_step:
+        return user_step[chat_id]
     else:
-        known_users.append(uid)
-        user_step[uid] = 0
+        known_users.append(chat_id)
+        user_step[chat_id] = 0
 
         log.info('New user detected, who hasn\'t used "/start" yet')
         return 0
@@ -57,18 +64,21 @@ all_content_types = ["text", "audio", "document", "photo", "sticker",
                      "video", "voice", "location", "contact", "video_note"]
 
 
-@bot.message_handler(func=lambda message: get_user_step(message.chat.id) == 0, content_types=all_content_types)
+@ bot.message_handler(func=lambda message: get_user_step(message.chat.id) == 0, content_types=all_content_types)
 def confused_user(message):
     command_start(message)
 
 
-@bot.message_handler(commands=["start"])
+@ bot.message_handler(commands=["start"])
 def command_start(message):
 
     log_command(message)
 
     # if user hasn't used the "/start" command yet:
     if (message.chat.id not in known_users) or (user_step[message.chat.id] == 0):
+
+        users_dict[message.chat.id] = UserSettings(message.chat.id)
+
         user_step[message.chat.id] = "upload_logo"
         markup = types.ForceReply(selective=False)
         bot.send_message(
@@ -79,9 +89,7 @@ def command_start(message):
 
     else:
         bot.send_message(
-            message.chat.id, "Terme (ترمه) is a simple bot to add watermark on images." +
-            "\nTo start please upload a transparent PNG logo with you want to use as watermark."
-            + "\n[send your logo as a 'file' not 'photo' to keep it transparent]",
+            message.chat.id, "Terme (ترمه) is a simple bot to add watermark on images.",
         )
         command_help(message)
 
@@ -96,6 +104,18 @@ def command_aborte(message):
         message.chat.id,
         "Command aborted!",
     )
+
+
+@bot.message_handler(commands=["init"])
+def init_settings(message):
+    user_step[message.chat.id] = "upload_logo"
+    markup = types.ForceReply(selective=False)
+
+    bot.send_message(
+        message.chat.id,
+        "To start please upload a transparent PNG logo with you want to use as watermark."
+        + "\n[send your logo as a 'file' not 'photo' to keep it transparent]",
+        reply_markup=markup)
 
 
 @bot.message_handler(commands=["help"])
@@ -116,30 +136,36 @@ def command_help(message):
 
 @bot.message_handler(func=lambda message: get_user_step(message.chat.id) == "upload_logo", content_types=all_content_types)
 def save_logo(message):
-    try:
+
+    if message.content_type == "photo":
+
+        markup = types.ForceReply(selective=False)
+        bot.send_message(
+            message.chat.id, "Send your logo as a 'file' not 'photo' to keep it transparent.",
+            reply_markup=markup)
+
+    elif message.content_type == "document":
         file_info = bot.get_file(message.document.file_id)
         _, extension = os.path.splitext(file_info.file_path)
-        if extension == ".jpg":
-            markup = types.ForceReply(selective=False)
-            bot.send_message(
-                message.chat.id, "Send your logo as a 'file' not 'photo' to keep it transparent!",
-                reply_markup=markup)
 
-        elif extension == ".PNG" or extension == ".png":
+        if extension.lower() == ".png":
 
             downloaded_file = bot.download_file(file_info.file_path)
-
-            with open("image.jpg", 'wb') as new_file:
+            watermark_path = os.path.join(os.path.dirname(
+                os.path.realpath(__file__)), "data", f"{message.chat.id}.png")
+            with open(watermark_path, 'wb') as new_file:
                 new_file.write(downloaded_file)
-                user_step[message.chat.id] = "init_default_scale"
-                init_default_settings(message)
+
+            users_dict[message.chat.id].watermark_path = watermark_path
+            user_step[message.chat.id] = "init_default_scale"
+            init_default_settings(message)
         else:
             markup = types.ForceReply(selective=False)
             bot.send_message(
                 message.chat.id, "Please upload '.png' file",
                 reply_markup=markup)
 
-    except:
+    else:
         markup = types.ForceReply(selective=False)
         bot.send_message(
             message.chat.id, "Please upload '.png' file",
@@ -162,6 +188,7 @@ def set_default_scale(message):
         scale = float(message.text)
         if scale > 1.0 or scale < 0.0:
             raise ValueError
+        users_dict[message.chat.id].scale = scale
         user_step[message.chat.id] = "init_default_transparency"
         init_default_transparency(message)
     except:
@@ -187,6 +214,7 @@ def set_default_transparency(message):
         if transparency > 1.0 or transparency < 0.0:
             raise ValueError
 
+        users_dict[message.chat.id].transparency = transparency
         user_step[message.chat.id] = "set_default_position"
         init_default_position(message)
 
@@ -225,23 +253,50 @@ def callback_query(call):
 
     if user_step[call.from_user.id] == "set_default_position":
 
-        if call.data == "top_left":
-            bot.answer_callback_query(call.id, "Answer is Top Left")
-        elif call.data == "top_right":
-            bot.answer_inline_query(call.id, "Answer is Top Right")
-        elif call.data == "bottom_left":
-            bot.answer_inline_query(call.id, "Answer is Bottom Left")
-        elif call.data == "bottom_right":
-            bot.answer_inline_query(call.id, "Answer is Bottom Right")
-        elif call.data == "center":
-            bot.answer_inline_query(call.id, "Answer is Center")
-        elif call.data == "tile":
-            bot.answer_inline_query(call.id, "Answer is Tile")
-
-        bot.send_message(
-            call.from_user.id, f"We are good to go!  you can start uploading your images to watermark them",
-        )
         user_step[call.from_user.id] = "watermark"
+        users_dict[call.from_user.id].position = call.data
+
+        bot.send_message(call.from_user.id,
+                         f"We are good to go! you can start uploading your images to watermark them",
+                         )
+
+    elif user_step[call.from_user.id] == "watermark":
+        print(call.data)
+
+
+@bot.message_handler(func=lambda message: get_user_step(message.chat.id) == "watermark", content_types=["document", "photo"])
+def watermarking(message):
+
+    if message.content_type == "photo":
+
+        file_info = bot.get_file(message.photo[-1].file_id)
+        _, extension = os.path.splitext(file_info.file_path)
+
+    elif message.content_type == "document":
+        file_info = bot.get_file(message.document.file_id)
+        _, extension = os.path.splitext(file_info.file_path)
+
+    if extension.lower() in [".jpg", ".png", ".bmp"]:
+        bot.send_chat_action(message.chat.id, 'typing')
+        downloaded_file = bot.download_file(file_info.file_path)
+
+        input_image_path = os.path.join(os.path.dirname(
+            os.path.realpath(__file__)), "data", f"{message.chat.id}_temp{extension}")
+        with open(input_image_path, 'wb') as new_file:
+            new_file.write(downloaded_file)
+
+    user = users_dict[message.chat.id]
+
+    output_image = watermark_image(
+        user.watermark_path, input_image_path, user.scale, user.transparency, user.position)
+
+    output_image_path = os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), "data", f"{message.chat.id}_temp_{user.position}{extension}")
+
+    output_image.save(output_image_path)
+
+    with open(output_image_path, 'rb') as im_f:
+        bot.send_photo(message.chat.id, im_f)
 
 
 def main_loop():
