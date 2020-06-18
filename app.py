@@ -118,7 +118,7 @@ def command_start(message):
 
 @bot.message_handler(commands=["cancel", "stop"])
 def command_aborte(message):
-
+    log_command(message)
     users_dict[message.chat.id].step = "idel"
     bot.send_message(
         message.chat.id,
@@ -128,6 +128,7 @@ def command_aborte(message):
 
 @bot.message_handler(commands=["initialize"])
 def init_settings(message):
+    log_command(message)
     users_dict[message.chat.id].step = "upload_logo"
     users_dict[message.chat.id].initialized = False
     markup = types.ForceReply(selective=False)
@@ -141,6 +142,7 @@ def init_settings(message):
 
 @bot.message_handler(commands=["help"])
 def command_help(message):
+    log_command(message)
     keyboard = telebot.types.InlineKeyboardMarkup()
     keyboard.add(
         telebot.types.InlineKeyboardButton(
@@ -148,16 +150,25 @@ def command_help(message):
         )
     )
 
+    help_message = "/start\n" +\
+        "/cancel or /stop\n" +\
+        "/initialize\n" +\
+        "/init_upload_logo\n" +\
+        "/init_default_scale\n" +\
+        "/init_default_transparency\n" +\
+        "/init_default_position\n" +\
+        "/help\n"
+
     bot.send_message(
         message.chat.id,
-        "\nfssf",
+        help_message,
         reply_markup=keyboard,
     )
 
 
 @bot.message_handler(commands=["init_upload_logo"])
 def init_upload_logo(message):
-
+    log_command(message)
     users_dict[message.chat.id].step = "upload_logo"
     markup = types.ForceReply(selective=False)
     bot.send_message(
@@ -211,7 +222,7 @@ def save_logo(message):
 
 @bot.message_handler(commands=["init_default_scale"])
 def init_default_settings(message):
-
+    log_command(message)
     markup = types.ForceReply(selective=False)
     bot.send_message(
         message.chat.id, "Set logo scale between (0.00 to 1.00), [default value is 0.25]", reply_markup=markup)
@@ -241,7 +252,7 @@ def set_default_scale(message):
 
 @bot.message_handler(commands=["init_default_transparency"])
 def init_default_transparency(message):
-
+    log_command(message)
     markup = types.ForceReply(selective=False)
     bot.send_message(
         message.chat.id, "Set logo transparency between (0.00 to 1.00), [default value is 0.50]  (smaller is more transparent)", reply_markup=markup)
@@ -273,7 +284,7 @@ def set_default_transparency(message):
 
 @bot.message_handler(commands=["init_default_position"])
 def init_default_position(message):
-
+    log_command(message)
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
     markup.add(types.InlineKeyboardButton("Top Left",
@@ -349,9 +360,15 @@ def watermarking(message):
         output_image.save(output_image_path)
 
         with open(output_image_path, 'rb') as im_f:
-            print("-"*25)
-            print(bot.send_photo(message.chat.id, im_f))
-            print("-"*25)
+            bot.send_document(message.chat.id, im_f)
+
+
+# default handler for every other text
+@bot.message_handler(func=lambda message: True, content_types=["text"])
+def command_default(message):
+    log_command(message)
+    bot.send_message(message.chat.id,
+                     f"invalid command: '{message.text}', send /help to get instructions.")
 
 
 def main_loop():

@@ -1,3 +1,9 @@
-new_logo - انتخاب لوگو جدید
-update_default_settings - به روز رسانی تنظیمات پیشفرض
-help - راهنما
+-start
+-cancel
+-stop
+-initialize
+-init_upload_logo
+-init_default_scale
+-init_default_transparency
+-init_default_position
+-help
