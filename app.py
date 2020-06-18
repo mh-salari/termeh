@@ -1,24 +1,22 @@
-# https://github.com/eternnoir/pyTelegramBotAPI
-
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Jun 18 2020
+@author: MohammadHossein Salari
+@sorces:
+    - https://github.com/eternnoir/pyTelegramBotAPI
+"""
 import telebot
 from telebot import types
 import logging as log
-import time
-
 import pickle
-
-
+import time
 import sys
 import os
 import re
-import os.path
+
 from watermark.watermark import watermark_image
-
-import logging
-
-logger = telebot.logger
-# telebot.logger.setLevel(logging.DEBUG)
+import config
 
 log.basicConfig(
     level=log.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -48,8 +46,7 @@ users_dict_pkl_path = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), "data", "users_dict.pkl")
 
 
-TOKEN = "1244219534:AAEAuWL-hm8mBcNV6Ocr6IfzaDODeHQm4Uc"
-bot = telebot.TeleBot(TOKEN, threaded=False)
+bot = telebot.TeleBot(config.bot_token, threaded=False)
 
 
 def log_command(message):
@@ -104,7 +101,7 @@ def command_start(message):
         users_dict[message.chat.id].step = "upload_logo"
         markup = types.ForceReply(selective=False)
         bot.send_message(
-            message.chat.id, "Terme (ترمه) is a simple bot to add watermark on images." +
+            message.chat.id, "Termeh (ترمه) is a simple bot to add watermark on images." +
             "\nTo start please upload a transparent PNG logo with you want to use as watermark."
             + "\n[send your logo as a 'file' not 'photo' to keep it transparent]",
             reply_markup=markup)

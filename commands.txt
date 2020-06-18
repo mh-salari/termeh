@@ -1,9 +1,9 @@
--start
--cancel
--stop
--initialize
--init_upload_logo
--init_default_scale
--init_default_transparency
--init_default_position
--help
+start -stert
+cancel - abort current command
+stop - abort current command
+initialize - set default settings and logo
+init_upload_logo - update logo
+init_default_scale - update scale ratio
+init_default_transparency - update transparency
+init_default_position - update position
+help - get help
