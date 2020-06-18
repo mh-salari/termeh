@@ -15,8 +15,8 @@ import os
 from PIL import Image
 
 
-def watermark_image(watermark_path, input_image_path, scale_ratio, transparency, position, paddin):
-    paddin = int(paddin) 
+def watermark_image(watermark_path, input_image_path, scale_ratio, transparency, position, padding):
+    padding = int(padding)
     # load watermark image
     try:
         watermark = Image.open(watermark_path)
@@ -43,25 +43,25 @@ def watermark_image(watermark_path, input_image_path, scale_ratio, transparency,
         alpha = Image.new('L', watermark.size, 255)
         watermark.putalpha(alpha)
 
-    paste_mask = watermark.split()[3].point(
+    paste_mask = watermark.split()[-1].point(
         lambda i: i * transparency)
 
     temp_image = input_image.copy()
 
     # add watermark to image
     if position in ["top_left", "topleft", "tl"]:
-       temp_image.paste(watermark, (paddin, paddin), mask=paste_mask)
+        temp_image.paste(watermark, (padding, padding), mask=paste_mask)
     elif position in ["bottom_left", "bottomleft", "bl"]:
         temp_image.paste(
-            watermark, (paddin, (temp_image.height - watermark.height-paddin)), mask=paste_mask)
+            watermark, (padding, (temp_image.height - watermark.height-padding)), mask=paste_mask)
 
     elif position in ["top_right", "topright", "tr"]:
         temp_image.paste(
-            watermark, ((temp_image.width - watermark.width-paddin), paddin), mask=paste_mask)
+            watermark, ((temp_image.width - watermark.width-padding), padding), mask=paste_mask)
 
     elif position in ["bottom_right", "bottomright", "br"]:
-        temp_image.paste(watermark, ((temp_image.width - watermark.width-paddin),
-                                     (temp_image.height - watermark.height-paddin)), mask=paste_mask)
+        temp_image.paste(watermark, ((temp_image.width - watermark.width-padding),
+                                     (temp_image.height - watermark.height-padding)), mask=paste_mask)
 
     elif position in ["center", "c"]:
         temp_image.paste(watermark, ((temp_image.width - watermark.width) //
@@ -70,10 +70,10 @@ def watermark_image(watermark_path, input_image_path, scale_ratio, transparency,
     elif position == "tile":
 
         xpadding = (temp_image.width -
-                watermark.width*(temp_image.width // watermark.width))//2
+                    watermark.width*(temp_image.width // watermark.width))//2
 
         ypadding = (temp_image.height -
-                watermark.height*(temp_image.height // watermark.height))//2
+                    watermark.height*(temp_image.height // watermark.height))//2
 
         for raw, xpos in enumerate(range(0, temp_image.width, watermark.height)):
 
@@ -117,10 +117,10 @@ if __name__ == "__main__":
     scale_ratio = args["scale"]
     transparency = args["transparency"]
     position = args["position"]
-    paddin =  args["paddin"]
+    padding = args["padding"]
 
     output_image = watermark_image(
-        watermark_path, input_path, scale_ratio, transparency, position, paddin)
+        watermark_path, input_path, scale_ratio, transparency, position, padding)
 
     output_image.show()
 
