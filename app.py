@@ -381,7 +381,7 @@ def watermarking(message):
         output_image.save(output_image_path, subsampling=0, quality=100)
 
         with open(output_image_path, 'rb') as im_f:
-            bot.send_document(message.chat.id, im_f)
+            bot.send_document(message.chat.id, im_f, reply_markup=types.ReplyKeyboardRemove())
         user.counter += 1
         log.info(
             f"user {user.chat_id} uploded new image, total: {user.counter}")
