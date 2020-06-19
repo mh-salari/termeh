@@ -234,7 +234,7 @@ def init_default_settings(message):
     markup = types.ForceReply(selective=False)
 
     bot.send_message(message.chat.id,
-                     "Set logo scale between (0.00 to 1.00)" +
+                     "Set logo scale between (0.01 to 2.00)" +
                      f"\n[current value is {users_dict[message.chat.id].scale}]",
                      reply_markup=markup)
     users_dict[message.chat.id].step = "set_default_scale"
@@ -245,7 +245,7 @@ def set_default_scale(message):
 
     try:
         scale = float(message.text)
-        if scale > 1.0 or scale < 0.0:
+        if scale > 2.0 or scale < 0.01:
             raise ValueError
         users_dict[message.chat.id].scale = scale
         if users_dict[message.chat.id].initialized == True:
@@ -260,7 +260,7 @@ def set_default_scale(message):
     except:
         markup = types.ForceReply(selective=False)
         bot.send_message(
-            message.chat.id, f"invalid value for scale: {message.text}\n[0.00<valid scale<1.00]", reply_markup=markup)
+            message.chat.id, f"invalid value for scale: {message.text}\n[0.01<valid scale<2.00]", reply_markup=markup)
 
 
 @bot.message_handler(commands=["transparency"])
