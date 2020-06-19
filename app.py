@@ -116,7 +116,7 @@ def command_start(message):
     else:
         bot.send_message(
             message.chat.id, "Welcome Back! :)",
-        )
+            reply_markup=types.ReplyKeyboardRemove())
         if users_dict[message.chat.id].initialized == True:
 
             users_dict[message.chat.id].step = "watermark"
@@ -204,7 +204,7 @@ def save_logo(message):
                 if users_dict[message.chat.id].initialized == True:
                     bot.send_message(message.chat.id,
                                      f"new logo uploded",
-                                     )
+                                     reply_markup=types.ReplyKeyboardRemove())
                     users_dict[message.chat.id].step = "watermark"
                     save_users_dict(users_dict_pkl_path)
                 else:
@@ -251,7 +251,7 @@ def set_default_scale(message):
         if users_dict[message.chat.id].initialized == True:
             bot.send_message(message.chat.id,
                              f"scale value updated to: {users_dict[message.chat.id].scale}",
-                             )
+                             reply_markup=types.ReplyKeyboardRemove())
             users_dict[message.chat.id].step = "watermark"
             save_users_dict(users_dict_pkl_path)
         else:
@@ -286,7 +286,7 @@ def set_default_transparency(message):
         if users_dict[message.chat.id].initialized == True:
             bot.send_message(message.chat.id,
                              f"transparency value updated to: {users_dict[message.chat.id].transparency}",
-                             )
+                             reply_markup=types.ReplyKeyboardRemove())
             users_dict[message.chat.id].step = "watermark"
             save_users_dict(users_dict_pkl_path)
         else:
@@ -336,14 +336,14 @@ def callback_query(call):
             if users_dict[call.from_user.id].initialized == True:
                 bot.send_message(call.from_user.id,
                                  f"position value updated to: {users_dict[call.from_user.id].position}",
-                                 )
+                                 reply_markup=types.ReplyKeyboardRemove())
                 users_dict[call.from_user.id].step = "watermark"
                 save_users_dict(users_dict_pkl_path)
             else:
                 users_dict[call.from_user.id].initialized = True
                 bot.send_message(call.from_user.id,
                                  f"We are good to go! you can start uploading your images to watermark them",
-                                 )
+                                 reply_markup=types.ReplyKeyboardRemove())
 
         elif users_dict[call.from_user.id].step == "watermark":
             pass
@@ -393,7 +393,8 @@ def watermarking(message):
 def command_default(message):
     log_command(message)
     bot.send_message(message.chat.id,
-                     f"invalid command: '{message.text}', send /help to get instructions.")
+                     f"invalid command: '{message.text}', send /help to get instructions.",
+                     reply_markup=types.ReplyKeyboardRemove())
 
 
 def main_loop():
