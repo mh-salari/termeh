@@ -21,8 +21,11 @@ import config
 # logger = telebot.logger
 # telebot.logger.setLevel(log.ERROR)
 
-log.basicConfig(
-    level=log.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log_path = os.path.join(os.path.dirname(
+    os.path.realpath(__file__)), "termeh.log")
+log.basicConfig(level=log.INFO,
+                filename=log_path,
+                format="%(asctime)s %(levelname)s %(message)s")
 
 users_dict = {}
 
@@ -85,10 +88,12 @@ def get_user_step(chat_id):
 all_content_types = ["text", "audio", "document", "photo", "sticker",
                      "video", "voice", "location", "contact", "video_note"]
 
+
 @bot.message_handler(func=lambda message: get_user_step(message.chat.id) == False,
                      content_types=all_content_types)
 def new_user(message):
     command_start(message)
+
 
 @ bot.message_handler(commands=["start"])
 def command_start(message):
@@ -116,6 +121,7 @@ def command_start(message):
 
             users_dict[message.chat.id].step = "watermark"
             command_help(message)
+
 
 @bot.message_handler(commands=["initialize"])
 def init_settings(message):
@@ -192,13 +198,13 @@ def save_logo(message):
             with open(watermark_path, 'wb') as new_file:
                 new_file.write(downloaded_file)
 
-            if watermark_path !=None:
+            if watermark_path != None:
 
                 users_dict[message.chat.id].watermark_path = watermark_path
                 if users_dict[message.chat.id].initialized == True:
                     bot.send_message(message.chat.id,
-                            f"new logo uploded",
-                            )
+                                     f"new logo uploded",
+                                     )
                     users_dict[message.chat.id].step = "watermark"
                     save_users_dict(users_dict_pkl_path)
                 else:
@@ -207,7 +213,7 @@ def save_logo(message):
             else:
                 markup = types.ForceReply(selective=False)
                 bot.send_message(message.chat.id, "Please upload '.png' file",
-                                reply_markup=markup)
+                                 reply_markup=markup)
 
         else:
             markup = types.ForceReply(selective=False)
@@ -226,11 +232,11 @@ def save_logo(message):
 def init_default_settings(message):
     log_command(message)
     markup = types.ForceReply(selective=False)
-    
+
     bot.send_message(message.chat.id,
-     "Set logo scale between (0.00 to 1.00)" +\
-     f"\n[current value is {users_dict[message.chat.id].scale}]", 
-     reply_markup=markup)
+                     "Set logo scale between (0.00 to 1.00)" +
+                     f"\n[current value is {users_dict[message.chat.id].scale}]",
+                     reply_markup=markup)
     users_dict[message.chat.id].step = "set_default_scale"
 
 
@@ -244,8 +250,8 @@ def set_default_scale(message):
         users_dict[message.chat.id].scale = scale
         if users_dict[message.chat.id].initialized == True:
             bot.send_message(message.chat.id,
-                            f"scale value updated to: {users_dict[message.chat.id].scale}",
-                            )
+                             f"scale value updated to: {users_dict[message.chat.id].scale}",
+                             )
             users_dict[message.chat.id].step = "watermark"
             save_users_dict(users_dict_pkl_path)
         else:
@@ -262,9 +268,9 @@ def init_default_transparency(message):
     log_command(message)
     markup = types.ForceReply(selective=False)
     bot.send_message(message.chat.id,
-         "Set logo transparency between (0.00 to 1.00)" +\
-         f"\n[current value is {users_dict[message.chat.id].transparency}] (smaller is more transparent)",
-         reply_markup=markup)
+                     "Set logo transparency between (0.00 to 1.00)" +
+                     f"\n[current value is {users_dict[message.chat.id].transparency}] (smaller is more transparent)",
+                     reply_markup=markup)
     users_dict[message.chat.id].step = "set_default_transparency"
 
 
@@ -279,8 +285,8 @@ def set_default_transparency(message):
         users_dict[message.chat.id].transparency = transparency
         if users_dict[message.chat.id].initialized == True:
             bot.send_message(message.chat.id,
-                            f"transparency value updated to: {users_dict[message.chat.id].transparency}",
-                            )
+                             f"transparency value updated to: {users_dict[message.chat.id].transparency}",
+                             )
             users_dict[message.chat.id].step = "watermark"
             save_users_dict(users_dict_pkl_path)
         else:
@@ -326,19 +332,18 @@ def callback_query(call):
 
             users_dict[call.from_user.id].step = "watermark"
             users_dict[call.from_user.id].position = call.data
-            
 
             if users_dict[call.from_user.id].initialized == True:
                 bot.send_message(call.from_user.id,
-                                f"position value updated to: {users_dict[call.from_user.id].position}",
-                                )
+                                 f"position value updated to: {users_dict[call.from_user.id].position}",
+                                 )
                 users_dict[call.from_user.id].step = "watermark"
                 save_users_dict(users_dict_pkl_path)
             else:
                 users_dict[call.from_user.id].initialized = True
                 bot.send_message(call.from_user.id,
-                                f"We are good to go! you can start uploading your images to watermark them",
-                                )
+                                 f"We are good to go! you can start uploading your images to watermark them",
+                                 )
 
         elif users_dict[call.from_user.id].step == "watermark":
             pass
@@ -377,8 +382,9 @@ def watermarking(message):
 
         with open(output_image_path, 'rb') as im_f:
             bot.send_document(message.chat.id, im_f)
-        user.counter +=1
-        log.info(f"user {user.chat_id} uploded new image, total: {user.counter}")
+        user.counter += 1
+        log.info(
+            f"user {user.chat_id} uploded new image, total: {user.counter}")
         save_users_dict(users_dict_pkl_path)
 
 
@@ -392,12 +398,16 @@ def command_default(message):
 
 def main_loop():
 
+    if not os.path.exists(os.path.dirname(users_dict_pkl_path)):
+        os.makedirs(os.path.dirname(users_dict_pkl_path))
+
     if os.path.exists(users_dict_pkl_path):
         if os.path.getsize(users_dict_pkl_path) > 0:
             global users_dict
             users_dict = load_users_dict(users_dict_pkl_path)
             print(users_dict)
-    while True:   
+        
+    while True:
         try:
             log.info("Starting bot polling...")
             bot.polling(none_stop=True)
@@ -405,6 +415,6 @@ def main_loop():
             log.error("Bot polling error: {0}".format(err.args))
             bot.stop_polling()
 
+
 if __name__ == "__main__":
     main_loop()
-
