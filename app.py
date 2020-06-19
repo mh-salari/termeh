@@ -406,7 +406,7 @@ def main_loop():
             global users_dict
             users_dict = load_users_dict(users_dict_pkl_path)
             print(users_dict)
-        
+
     while True:
         try:
             log.info("Starting bot polling...")
