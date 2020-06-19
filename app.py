@@ -377,6 +377,9 @@ def watermarking(message):
 
         with open(output_image_path, 'rb') as im_f:
             bot.send_document(message.chat.id, im_f)
+        user.counter +=1
+        log.info(f"user {user.chat_id} uploded new image, total: {user.counter}")
+        save_users_dict(users_dict_pkl_path)
 
 
 # default handler for every other text
@@ -394,13 +397,13 @@ def main_loop():
             global users_dict
             users_dict = load_users_dict(users_dict_pkl_path)
             print(users_dict)
-   
-    try:
-        log.info("Starting bot polling...")
-        bot.polling(none_stop=True)
-    except Exception as err:
-        log.error("Bot polling error: {0}".format(err.args))
-        bot.stop_polling()
+    while True:   
+        try:
+            log.info("Starting bot polling...")
+            bot.polling(none_stop=True)
+        except Exception as err:
+            log.error("Bot polling error: {0}".format(err.args))
+            bot.stop_polling()
 
 if __name__ == "__main__":
     main_loop()
