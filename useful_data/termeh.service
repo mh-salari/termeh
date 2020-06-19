@@ -1,0 +1,16 @@
+sudo nano /lib/systemd/system/termeh.service
+
+[Unit]
+Description=Termeh watermark Telegram bot
+After=multi-user.target
+Conflicts=getty@tty1.service
+[Service]
+Type=simple
+ExecStart=/root/miniconda3/bin/python /root/codes/watermark/app.py
+StandardInput=tty-force
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=1s
+[Install]
+WantedBy=multi-user.target
+
