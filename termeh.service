@@ -1,0 +1,18 @@
+[Unit]
+Description=Hafez_Fal.ir twitter bot
+After=multi-user.target
+Conflicts=getty@tty1.service
+[Service]
+Type=simple
+ExecStart=/root/miniconda3/envs/twitter/bin/python3 /root/codes/hafez_fal/hafez_fal_ir_twitter_bot/twitter_bot_post.py
+StandardInput=tty-force
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=25s
+[Install]
+WantedBy=multi-user.target
+
+#sudo nano /lib/systemd/system/hafez_fal.service
+#sudo systemctl daemon-reload 
+#sudo systemctl enable hafez_fal.service
+#sudo systemctl start hafez_fal.service
