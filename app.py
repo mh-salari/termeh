@@ -408,14 +408,17 @@ def main_loop():
             users_dict = load_users_dict(users_dict_pkl_path)
             print(users_dict)
 
-    while True:
-        try:
-            log.info("Starting bot polling...")
-            bot.polling(none_stop=True)
-        except Exception as err:
-            log.error("Bot polling error: {0}".format(err.args))
-            bot.stop_polling()
+    try:
+        log.info("Starting bot polling...")
+        bot.polling(none_stop=True)
+    except Exception as err:
+        log.error("Bot polling error: {0}".format(err.args))
+        bot.stop_polling()
 
 
 if __name__ == "__main__":
-    main_loop()
+    try:
+        main_loop()
+    except KeyboardInterrupt:
+        print("\nExiting by user request.\n")
+        sys.exit(0)
